@@ -10,16 +10,14 @@ from dotenv import load_dotenv
 logger = logging.getLogger(__name__)
 
 class MongoDBHelper:
-    def __init__(self, account: str):
-        """Initialize MongoDB connection for specific account."""
-        self.account = account
+    def __init__(self):
+        """Initialize MongoDB connection."""
         self.db = None
         self._setup_connection()
     
     def _setup_connection(self):
-        """Setup MongoDB connection for the specific account."""
-        account_path = f"config/accounts/{self.account}"
-        env_path = os.path.join(account_path, ".env")
+        """Setup MongoDB connection."""
+        env_path = "config/.env"
         
         if os.path.exists(env_path):
             load_dotenv(env_path)
@@ -30,7 +28,7 @@ class MongoDBHelper:
         
         client = MongoClient(mongodb_uri)
         self.db = client.get_default_database()
-        logger.info(f"Connected to MongoDB for account: {self.account}")
+        logger.info("Connected to MongoDB")
     
     def save_document(self, collection_name: str, document: Dict[str, Any]) -> str:
         """Save a document to the specified collection."""
@@ -103,21 +101,21 @@ class MongoDBHelper:
             logger.error(f"Failed to delete document: {str(e)}")
             raise Exception(f"Database delete failed: {str(e)}")
 
-# Account-specific helper instances
-_mongodb_helpers = {}
+# Global helper instance
+_mongodb_helper = None
 
-def get_mongodb_helper(account: str) -> MongoDBHelper:
-    """Get MongoDB helper instance for specific account."""
-    global _mongodb_helpers
-    if account not in _mongodb_helpers:
-        _mongodb_helpers[account] = MongoDBHelper(account)
-    return _mongodb_helpers[account]
+def get_mongodb_helper() -> MongoDBHelper:
+    """Get singleton MongoDB helper instance."""
+    global _mongodb_helper
+    if _mongodb_helper is None:
+        _mongodb_helper = MongoDBHelper()
+    return _mongodb_helper
 
-def save_document(account: str, collection_name: str, document: Dict[str, Any]) -> str:
+def save_document(collection_name: str, document: Dict[str, Any]) -> str:
     """Convenience function to save a document."""
-    return get_mongodb_helper(account).save_document(collection_name, document)
+    return get_mongodb_helper().save_document(collection_name, document)
 
-def find_documents(account: str, collection_name: str, query: Dict[str, Any] = None, 
+def find_documents(collection_name: str, query: Dict[str, Any] = None, 
                   projection: Dict[str, Any] = None, limit: int = None) -> List[Dict]:
     """Convenience function to find documents."""
-    return get_mongodb_helper(account).find_documents(collection_name, query, projection, limit)
+    return get_mongodb_helper().find_documents(collection_name, query, projection, limit)

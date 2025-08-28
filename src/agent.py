@@ -13,16 +13,20 @@ import asyncio
 from datetime import datetime
 from typing import Dict, List, Optional, Any, TypedDict
 from dataclasses import dataclass
+from dotenv import load_dotenv
+
+# Add project root to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Load environment variables
+load_dotenv('config/.env')
 
 # LangGraph imports
 from langgraph.graph import StateGraph, END
 
-# Add tools directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'tools'))
-
-# Import existing utilities
-from utils.mongodb_helper import save_document
-from config.accounts.tycoona.workflows.image_curator import BiographyImageCurator
+# Import existing utilities  
+from src.utils.mongodb_helper import save_document
+from workflows.image_curator import BiographyImageCurator
 
 logger = logging.getLogger(__name__)
 
@@ -98,8 +102,8 @@ class WikimediaCurationAgent:
         logger.info(f"Searching Wikimedia for: {state['subject']}")
         
         try:
-            # Import the Wikimedia tool (following existing pattern)
-            from tools.wikimedia import call_wikimedia_tool
+            # Import the Wikimedia tool
+            from src.tools.wikimedia import call_wikimedia_tool
             
             # Construct search query based on photo type
             search_query = state['subject']
@@ -268,12 +272,11 @@ class WikimediaCurationAgent:
                     "curated_at": img.get("curated_at", datetime.utcnow()),
                     
                     # Additional metadata
-                    "collection": "images",
-                    "account": "tycoona"
+                    "collection": "images"
                 }
                 
                 # Save to MongoDB
-                doc_id = save_document("tycoona", "images", image_doc)
+                doc_id = save_document("images", image_doc)
                 saved_ids.append(str(doc_id))
                 logger.info(f"Saved image {img.get('caption', 'Unknown')} with ID: {doc_id}")
             
@@ -322,6 +325,69 @@ class WikimediaCurationAgent:
             return "success"
         return "error"
     
+    def _print_summary(self, result: Dict[str, Any], curated_images: List[Dict]) -> None:
+        """Print a formatted summary of the curation results to terminal"""
+        print("\n" + "="*80)
+        print(f"🖼️  WIKIMEDIA CURATION RESULTS")
+        print("="*80)
+        
+        # Basic info
+        status_emoji = "✅" if result["success"] else "❌"
+        photo_type_emoji = "👤" if result["photo_type"] == "primary" else "🏛️"
+        
+        print(f"{status_emoji} Status: {'SUCCESS' if result['success'] else 'FAILED'}")
+        print(f"{photo_type_emoji} Subject: {result['subject']}")
+        print(f"📷 Photo Type: {result['photo_type'].title()} photos")
+        print(f"🔍 Images Processed: {result['images_processed']}")
+        print(f"🎯 Images Curated: {result['images_curated']}")
+        print(f"💾 Images Saved: {result['images_saved']}")
+        
+        if result["errors"]:
+            print(f"⚠️  Errors: {len(result['errors'])}")
+        
+        print(f"💬 Message: {result['message']}")
+        
+        # Show curated images with scores
+        if curated_images:
+            print("\n📋 CURATED IMAGES:")
+            print("-" * 80)
+            
+            featured_images = [img for img in curated_images if img.get("featured", False)]
+            carousel_images = [img for img in curated_images if not img.get("featured", False)]
+            
+            if featured_images:
+                print("⭐ FEATURED:")
+                for img in featured_images:
+                    self._print_image_details(img)
+            
+            if carousel_images:
+                print("🎠 CAROUSEL:")
+                for img in carousel_images:
+                    self._print_image_details(img)
+        
+        # MongoDB IDs
+        if result["saved_image_ids"]:
+            print(f"\n🗄️  MongoDB Document IDs:")
+            for i, doc_id in enumerate(result["saved_image_ids"], 1):
+                print(f"   {i}. {doc_id}")
+        
+        print("="*80 + "\n")
+    
+    def _print_image_details(self, img: Dict) -> None:
+        """Print details for a single curated image"""
+        caption = img.get("caption", "No caption")
+        curation_data = img.get("curation_data", {})
+        
+        portrait_score = curation_data.get("portrait_score", 0)
+        historical_score = curation_data.get("historical_score", 0)
+        quality_score = curation_data.get("quality_score", 0)
+        
+        print(f"   📸 {caption}")
+        print(f"      📊 Scores: Portrait={portrait_score}/10, Historical={historical_score}/10, Quality={quality_score}/10")
+        print(f"      📐 Size: {img.get('width', 'unknown')}×{img.get('height', 'unknown')}")
+        print(f"      🔗 Source: {img.get('src', 'No URL')[:80]}...")
+        print()
+    
     async def run(self, subject: str, is_primary_photos: bool, limit: int = 8) -> Dict[str, Any]:
         """
         Run the complete curation workflow
@@ -352,8 +418,8 @@ class WikimediaCurationAgent:
         # Run the graph
         result = await self.graph.ainvoke(initial_state)
         
-        # Return clean result
-        return {
+        # Create clean result
+        clean_result = {
             "success": result.get("success", False),
             "subject": result.get("subject", subject),
             "photo_type": "primary" if is_primary_photos else "context", 
@@ -364,19 +430,28 @@ class WikimediaCurationAgent:
             "message": result.get("message", ""),
             "errors": result.get("errors", [])
         }
+        
+        # Print summary to terminal
+        self._print_summary(clean_result, result.get("curated_images", []))
+        
+        return clean_result
 
 async def run_curation_workflow(subject: str, is_primary_photos: bool, limit: int = 8) -> Dict[str, Any]:
     """
     Convenience function to run the curation workflow
     
     Args:
-        subject: Subject to search for (e.g., "taylor_swift")
-        is_primary_photos: True for primary photos, False for context photos
-        limit: Max images to process
+        subject: Subject to search for (e.g., "Marie Curie", "World War II")
+        is_primary_photos: True for photos OF the subject, False for context photos
+        limit: Max images to process (default 8)
         
     Returns:
-        Curation results
+        Curation results with success status, counts, and MongoDB IDs
     """
+    print(f"\n🚀 Starting Wikimedia curation for: {subject}")
+    print(f"📷 Type: {'Primary photos' if is_primary_photos else 'Context photos'}")
+    print(f"🔢 Limit: {limit} images")
+    
     agent = WikimediaCurationAgent()
     return await agent.run(subject, is_primary_photos, limit)
 

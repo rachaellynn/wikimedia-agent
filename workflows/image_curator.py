@@ -1,4 +1,4 @@
-"""AI-powered image curation for tycoona biographical content."""
+"""AI-powered image curation for biographical content."""
 
 import os
 import sys
@@ -10,9 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from datetime import datetime
 
-# Add tools directory to path
-sys.path.append(os.path.join(os.path.dirname(__file__), '../../../../tools'))
-from utils.openai_helper import get_openai_helper
+from src.utils.openai_helper import get_openai_helper
 
 logger = logging.getLogger(__name__)
 
@@ -114,95 +112,6 @@ class BiographyImageCurator:
             "all_images": all_images  # For easier access to all images with featured flag
         }
     
-    async def _snapshot_getty_embed(self, embed_html: str, image_id: str) -> Optional[str]:
-        """
-        Take a screenshot of a Getty embed using Playwright and upload to Cloudinary.
-        
-        Args:
-            embed_html: The Getty embed HTML code
-            image_id: The Getty image ID for logging
-            
-        Returns:
-            Cloudinary URL of the snapshot or None if failed
-        """
-        try:
-            from playwright.async_api import async_playwright
-            
-            logger.info(f"Taking Playwright snapshot of Getty embed {image_id}")
-            
-            async with async_playwright() as p:
-                # Launch browser in headless mode
-                browser = await p.chromium.launch(headless=True)
-                context = await browser.new_context(
-                    viewport={"width": 800, "height": 600},
-                    user_agent="Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36"
-                )
-                page = await context.new_page()
-                
-                # Create a simple HTML page with the Getty embed
-                html_content = f"""
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta charset="utf-8">
-                    <title>Getty Embed Snapshot</title>
-                    <style>
-                        body {{ margin: 20px; font-family: Arial, sans-serif; }}
-                        .getty-container {{ max-width: 600px; margin: 0 auto; }}
-                    </style>
-                </head>
-                <body>
-                    <div class="getty-container">
-                        {embed_html}
-                    </div>
-                </body>
-                </html>
-                """
-                
-                # Load the HTML content
-                await page.set_content(html_content)
-                
-                # Wait for the Getty iframe to load
-                try:
-                    await page.wait_for_selector("iframe", timeout=10000)  # Wait up to 10 seconds
-                    await page.wait_for_timeout(3000)  # Additional wait for content to load
-                except:
-                    logger.warning(f"Iframe did not load within timeout for Getty {image_id}")
-                
-                # Take screenshot of the Getty embed container
-                embed_element = await page.query_selector(".getty-embed-container")
-                if embed_element:
-                    screenshot_bytes = await embed_element.screenshot(type="png")
-                    await browser.close()
-                    
-                    # Upload screenshot to Cloudinary
-                    import cloudinary.uploader
-                    
-                    # Create public ID for the snapshot
-                    public_id = f"tycoona/getty-snapshots/{image_id}"
-                    
-                    upload_response = cloudinary.uploader.upload(
-                        screenshot_bytes,
-                        public_id=public_id,
-                        overwrite=True,
-                        resource_type="image",
-                        format="png"
-                    )
-                    
-                    cloudinary_url = upload_response.get('secure_url', '')
-                    logger.info(f"Successfully captured and uploaded Getty embed {image_id} to Cloudinary: {cloudinary_url}")
-                    return cloudinary_url
-                else:
-                    logger.error(f"Could not find Getty embed container for {image_id}")
-                    await browser.close()
-                    return None
-                    
-        except ImportError:
-            logger.error("Playwright not installed. Install with: pip install playwright")
-            return None
-        except Exception as e:
-            logger.error(f"Failed to snapshot Getty embed {image_id}: {str(e)}")
-            return None
     
     async def _analyze_image(self, subject: str, image: Dict) -> Dict:
         """
@@ -215,32 +124,7 @@ class BiographyImageCurator:
         Returns:
             Dict with analysis scores and curated caption
         """
-        # Check if this is a Getty embed that needs snapshotting
-        src = image.get("src", "")
-        if src.startswith("<") and image.get("source") == "getty":
-            # Take a Playwright snapshot of the Getty embed
-            image_id = image.get("id", "unknown")
-            snapshot_url = await self._snapshot_getty_embed(src, image_id)
-            
-            if snapshot_url:
-                # Use the snapshot URL for AI analysis
-                logger.info(f"Using Playwright snapshot for Getty embed {image_id} analysis")
-                # Create a temporary image dict with the snapshot URL
-                snapshot_image = image.copy()
-                snapshot_image["src"] = snapshot_url
-                return self._analyze_image_with_vision(subject, snapshot_image)
-            else:
-                # Fallback if snapshot failed
-                logger.warning(f"Snapshot failed for Getty {image_id}, using fallback scoring")
-                return {
-                    "portrait_score": 6,  # Conservative fallback
-                    "historical_score": 5,
-                    "quality_score": 6,
-                    "reasoning": f"Getty embed snapshot failed - using fallback scoring",
-                    "curated_caption": f"Getty Images photo of {subject}"
-                }
-        
-        # For regular image URLs, use direct vision analysis
+        # Use direct vision analysis for all images
         return self._analyze_image_with_vision(subject, image)
     
     def _analyze_image_with_vision(self, subject: str, image: Dict) -> Dict:
@@ -502,20 +386,20 @@ class BiographyImageCurator:
             title = image.get("title", "").replace("File:", "").replace(".jpg", "").replace(".png", "")
             caption = title[:47] + "..." if len(title) > 50 else title
         
-        # Handle both regular URLs and Getty embed codes
-        image_url = image.get("url", "") or image.get("src", "") or image.get("embed_code", "")
+        # Get image URL
+        image_url = image.get("url", "") or image.get("src", "")
         
-        # Getty images use embed codes (HTML), regular images use URLs
+        # Validate image URL
         if not image_url:
-            logger.warning(f"Invalid or missing URL/embed code for image: {image.get('title', 'unknown')}")
+            logger.warning(f"Invalid or missing URL for image: {image.get('title', 'unknown')}")
             image_url = ""
-        elif not (image_url.startswith(("http://", "https://")) or image_url.startswith("<")):
-            # Neither URL nor HTML embed code
+        elif not image_url.startswith(("http://", "https://")):
+            # Invalid URL format
             logger.warning(f"Invalid URL format for image: {image.get('title', 'unknown')}")
             image_url = ""
         
         # Determine source and set appropriate fields
-        source = image.get("source", "unknown")
+        source = image.get("source", "wikimedia")
         
         # Generic structure that works for all image sources
         result = {
@@ -533,14 +417,11 @@ class BiographyImageCurator:
         if source == "wikimedia":
             result["wikimediaUrl"] = image_url
             result["attribution"] = image.get("attribution", "Via Wikimedia Commons")
-        elif source == "getty":
-            result["gettyId"] = image.get("id", "")
-            result["attribution"] = "Getty Images"
         else:
-            # Generic attribution for unknown sources
+            # Generic attribution for other sources
             result["attribution"] = image.get("attribution", "Source unknown")
             
-        # Store original dimensions if available (for Getty we don't have them)
+        # Store original dimensions if available
         if image.get("original_width") and image.get("original_height"):
             result["originalWidth"] = image.get("original_width")
             result["originalHeight"] = image.get("original_height")

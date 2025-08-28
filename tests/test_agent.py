@@ -11,11 +11,11 @@ import logging
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from account config
-load_dotenv('config/accounts/tycoona/.env')
+# Load environment variables
+load_dotenv('config/.env')
 
-# Add current directory to path
-sys.path.insert(0, str(Path(__file__).parent))
+# Add project root to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +33,7 @@ async def test_agent_basic():
         return False
     
     try:
-        from wikimedia_curation_agent import run_curation_workflow
+        from src.agent import run_curation_workflow
         
         # Test 1: Primary photos
         print("\n📸 Test 1: Primary photos of Albert Einstein")
@@ -95,12 +95,12 @@ async def test_workflow_components():
     print("=" * 50)
     
     try:
-        from wikimedia_curation_agent import WikimediaCurationAgent
+        from src.agent import WikimediaCurationAgent
         
         agent = WikimediaCurationAgent()
         
         # Test state initialization
-        from wikimedia_curation_agent import AgentState
+        from src.agent import AgentState
         initial_state = AgentState(
             subject="Test Subject",
             is_primary_photos=True,
@@ -182,8 +182,8 @@ async def main():
     
     print("\n🎉 All tests completed successfully!")
     print("\n📝 Next steps:")
-    print("1. Set OPENAI_API_KEY and MONGODB_URI environment variables")
-    print("2. Run: python cli_wikimedia_agent.py curate 'Albert Einstein' --primary --limit 3")
+    print("1. Set OPENAI_API_KEY and MONGODB_URI in config/.env")
+    print("2. Run: python src/agent.py")
     print("3. Check your MongoDB 'images' collection for results")
 
 if __name__ == "__main__":
