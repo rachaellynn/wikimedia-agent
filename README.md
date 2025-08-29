@@ -45,10 +45,10 @@ Edit `config/.env` with your credentials:
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/database
 
 # OpenAI API Configuration (required)
-OPENAI_API_KEY=sk-proj-your-openai-api-key-here
+OPENAI_API_KEY=your-openai-api-key
 
 # Optional: Anthropic API for additional features
-ANTHROPIC_API_KEY=sk-ant-api03-your-anthropic-key-here
+ANTHROPIC_API_KEY=your-anthropic-api-key
 ```
 
 ## Usage
