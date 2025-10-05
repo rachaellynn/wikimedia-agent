@@ -38,3 +38,7 @@ env/
 # OS
 .DS_Store
 Thumbs.db
+
+# Project-specific files
+langgraph-architecture.md
+Raworc-API.postman_collection.json
