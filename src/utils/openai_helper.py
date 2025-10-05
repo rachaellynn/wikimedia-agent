@@ -12,7 +12,7 @@ class OpenAIHelper:
         """Initialize OpenAI client."""
         api_key = api_key or os.getenv("OPENAI_API_KEY")
         if not api_key:
-            raise Exception("OpenAI API key not found")
+            raise ValueError("OpenAI API key not found in environment variables")
         
         self.client = openai.OpenAI(api_key=api_key)
         logger.info("OpenAI client initialized")
@@ -32,7 +32,7 @@ class OpenAIHelper:
             
         except Exception as e:
             logger.error(f"OpenAI generation failed: {str(e)}")
-            raise Exception(f"Failed to generate content: {str(e)}")
+            raise RuntimeError(f"Failed to generate content: {str(e)}")
     
     def categorize_content(self, subject: str, content_sample: str, 
                           available_categories: List[str], existing_categories: Optional[List[Dict]] = None) -> List[str]:

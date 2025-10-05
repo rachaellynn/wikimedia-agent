@@ -1,0 +1,1112 @@
+{
+	"info": {
+		"_postman_id": "raworc-api-collection",
+		"name": "RawOrc API",
+		"description": "Complete API collection for RawOrc platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{jwt_token}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://raworc.remoteagent.com:9000/api/v0",
+			"type": "string"
+		},
+		{
+			"key": "jwt_token",
+			"value": "",
+			"type": "string"
+		}
+	],
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    if (response.token) {",
+									"        pm.collectionVariables.set('jwt_token', response.token);",
+									"    }",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user\": \"admin\",\n  \"pass\": \"your-password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"login"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/auth/me",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"auth",
+								"me"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Core",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/health",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"health"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Version",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/version",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"version"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Service Accounts",
+			"item": [
+				{
+					"name": "List Service Accounts",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/service-accounts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Service Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"service-account-name\",\n  \"description\": \"Service account description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/service-accounts",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Service Account",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/service-accounts/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "service-account-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Service Account",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"updated-service-account-name\",\n  \"description\": \"Updated description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/service-accounts/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "service-account-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Service Account",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/service-accounts/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "service-account-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Service Account Password",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"password\": \"new-password\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/service-accounts/:id/password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"service-accounts",
+								":id",
+								"password"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "service-account-id"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Spaces",
+			"item": [
+				{
+					"name": "List Spaces",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Space",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"space-name\",\n  \"description\": \"Space description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Space",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Space",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated space description\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces/:name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Space",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Secrets",
+			"item": [
+				{
+					"name": "List Secrets",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/secrets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"secrets"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Secret",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"key\": \"secret-key\",\n  \"value\": \"secret-value\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/secrets",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"secrets"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Secret",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/secrets/:key",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"secrets",
+								":key"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "key",
+									"value": "secret-key"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Secret",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"value\": \"updated-secret-value\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/secrets/:key",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"secrets",
+								":key"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "key",
+									"value": "secret-key"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Secret",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/secrets/:key",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"secrets",
+								":key"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "key",
+									"value": "secret-key"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Sessions",
+			"item": [
+				{
+					"name": "List Sessions",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"session-name\",\n  \"agent_name\": \"agent-name\",\n  \"space_name\": \"space-name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions"
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Session",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Session",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"updated-session-name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Session",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Session State",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"state\": \"running\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/state",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"state"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Pause Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/pause",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"pause"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Suspend Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/suspend",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"suspend"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Resume Session",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/resume",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"resume"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Remix Session",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"agent_name\": \"new-agent-name\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/remix",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"remix"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Session Messages",
+			"item": [
+				{
+					"name": "List Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"messages"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Send Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"role\": \"user\",\n  \"content\": \"hello agent!\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"messages"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Clear Messages",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"messages"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Message Count",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/sessions/:id/messages/count",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"sessions",
+								":id",
+								"messages",
+								"count"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "session-id"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Agents",
+			"item": [
+				{
+					"name": "List Agents",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"agents"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Agent",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"agent-name\",\n  \"description\": \"Agent description\",\n  \"model\": \"gpt-4\",\n  \"instructions\": \"Agent instructions\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/agents",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"agents"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Agent",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/agents/:agent_name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"agents",
+								":agent_name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "agent_name",
+									"value": "agent-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Agent",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"description\": \"Updated agent description\",\n  \"instructions\": \"Updated agent instructions\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/agents/:agent_name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"agents",
+								":agent_name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "agent_name",
+									"value": "agent-name"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Agent",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/spaces/:name/agents/:agent_name",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"spaces",
+								":name",
+								"agents",
+								":agent_name"
+							],
+							"variable": [
+								{
+									"key": "name",
+									"value": "space-name"
+								},
+								{
+									"key": "agent_name",
+									"value": "agent-name"
+								}
+							]
+						}
+					}
+				}
+			]
+		}
+	]
+}

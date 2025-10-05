@@ -15,7 +15,7 @@ An intelligent image curation system that uses LangGraph workflows and OpenAI Vi
 
 1. Clone the repository:
 ```bash
-git clone <your-repo-url>
+git clone https://github.com/your-org/wikimedia-agent
 cd wikimedia-agent
 ```
 
@@ -32,13 +32,13 @@ pip install -r requirements.txt
 
 4. Configure environment variables:
 ```bash
-cp .env.example config/.env
-# Edit config/.env with your API keys
+cp .env.example .env
+# Edit .env with your API keys
 ```
 
 ## Configuration
 
-Edit `config/.env` with your credentials:
+Edit `.env` with your credentials:
 
 ```env
 # MongoDB Configuration (required)
@@ -103,8 +103,7 @@ wikimedia-agent/
       image_curator.py   # Image analysis and curation
    tests/                 # Test files
       test_agent.py      # Main test suite
-   config/                # Configuration
-      .env              # Environment variables (gitignored)
+   .env                   # Environment variables (gitignored)
    .env.example          # Template for environment setup
    requirements.txt      # Python dependencies
 ```

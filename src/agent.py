@@ -15,18 +15,25 @@ from typing import Dict, List, Optional, Any, TypedDict
 from dataclasses import dataclass
 from dotenv import load_dotenv
 
-# Add project root to path for imports
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Load environment variables
-load_dotenv('config/.env')
+# Load environment variables from project root
+load_dotenv()
 
 # LangGraph imports
 from langgraph.graph import StateGraph, END
 
-# Import existing utilities  
-from src.utils.mongodb_helper import save_document
-from workflows.image_curator import BiographyImageCurator
+# Import existing utilities
+try:
+    # When run as a module
+    from .utils.mongodb_helper import save_document
+    from ..workflows.image_curator import BiographyImageCurator
+except ImportError:
+    # When run directly, add parent to path temporarily
+    import sys
+    import os
+    sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    from src.utils.mongodb_helper import save_document
+    from workflows.image_curator import BiographyImageCurator
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +110,10 @@ class WikimediaCurationAgent:
         
         try:
             # Import the Wikimedia tool
-            from src.tools.wikimedia import call_wikimedia_tool
+            try:
+                from .tools.wikimedia import call_wikimedia_tool
+            except ImportError:
+                from src.tools.wikimedia import call_wikimedia_tool
             
             # Construct search query based on photo type
             search_query = state['subject']

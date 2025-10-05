@@ -1,16 +1,16 @@
 # LangGraph Wikimedia Curation Agent Requirements
 
 # Core LangGraph and LangChain
-langgraph>=0.0.55
-langchain>=0.1.0
-langchain-openai>=0.1.0
+langgraph>=0.0.55,<1.0.0
+langchain>=0.1.0,<1.0.0
+langchain-openai>=0.1.0,<1.0.0
 
 # Database
-pymongo>=4.0.0
+pymongo>=4.0.0,<5.0.0
 
 # HTTP and utilities
-requests>=2.31.0
-python-dotenv>=1.0.0
+requests>=2.31.0,<3.0.0
+python-dotenv>=1.0.0,<2.0.0
 
 # Logging
-coloredlogs>=15.0
+coloredlogs>=15.0,<16.0
